@@ -3,6 +3,10 @@ Simple asynchronous task queuing system.
 
 Pardon my dust. Currently working on it.
 
+## Install
+
+'npm install queued-up'
+
 ## Usage
 
 ### Input
