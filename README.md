@@ -1,3 +1,5 @@
+[![Stories in Ready](https://badge.waffle.io/Johnhhorton/queued-up.svg?label=ready&title=Ready)](http://waffle.io/Johnhhorton/queued-up)
+
 # queued-up
 Simple asynchronous task queuing system.
 
