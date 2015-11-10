@@ -1,7 +1,7 @@
 {
   "name": "queued-up",
   "version": "1.0.0",
-  "description": "0.0.1",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "npm test"
