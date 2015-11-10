@@ -5,7 +5,7 @@ Pardon my dust. Currently working on it.
 
 ## Install
 
-'npm install queued-up'
+`npm install queued-up`
 
 ## Usage
 
@@ -19,7 +19,7 @@ the queue for later retrieval by passing it into the done() function. See exampl
 ### Methods
 
 * .queue()       - Seturns the queue array
-* .queue(\[,...\])  - Sets queue array to the input
+* .queue(\[,...\]) - Sets queue array to the input
 * .add(input)    - Adds the input to the end of the queue array
 * .remove(number)- removes the queue item at the given index
 * .index         - returns the current iteration point of the queue
