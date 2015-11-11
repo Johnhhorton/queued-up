@@ -1,10 +1,11 @@
 [![Stories in Ready](https://badge.waffle.io/Johnhhorton/queued-up.svg?label=ready&title=Ready)](http://waffle.io/Johnhhorton/queued-up)
 
 # queued-up
-I wanted to build a task system that made sense, was as simple as it could be, and as powerful as it could be.  
+I wanted to build a task system that made sense, and was as simple and as powerful as it could be.  
 This queue module can run basic functions over a list of items, or run a series of async calls meant for vastly different things.
-You can either save the resultant data, or simply perform each operation without it.
 
+
+You can either save the resultant data, or simply perform each operation without it.
 
 Pardon my dust. Functionality finished.  Working on documenting all features.
 
@@ -23,37 +24,32 @@ the queue for later retrieval by passing it into the done() function. See exampl
 
 ### Methods
 
-Methods for the queue instance.
+Methods for the queue instance:
 
-* .queue()       - Returns the queue array
-* .queue(\[,...\]) - Sets queue array to the input replacing existing items
+* `.queue()`       - Returns the queue array
+* `.queue(\[,...\])` - Sets queue array to the input replacing existing items
+* `.add(input)`    - Adds the input to the end of the queue array
+* `.remove(number)`- removes the queue item at the given index
+* `.index`         - returns the current iteration point of the queue
+* `.index(number)` - sets the index manually
+* `.next()`        - processes the next item in the queue, and returns result.
+* `.next(n)`       - Processes the next n items in the queue. Get results from .results()
+* `.run()`         - begins processing queue while maintaining the queue
+* `.run(index)`    - begins processing queue at given index
+* `.shift()`       - Processes the first item in the queue, removes it, and returns the results
+* `.shift(n)`      - Performs .shift() for the next n items. Get results from .results()
+* `.shiftRun()`	 - begins processing all items in the queue, removing each, and appending .results();
+* `.pause()`       - pauses the run() at current index or shiftRun().
+* `.resume()`      - resumes the queue run. Do not call this within the 'paused' eventhandler!
+* `.reset()`       - sets index(), queue(), and results() to zero and empty
+* `.results()`     - Returns the results array. Index matching run/next, or order of shift/shiftRun
+* `.shiftResults()`- Returns the first item in the results array and removes it.
 
-* .add(input)    - Adds the input to the end of the queue array
-* .remove(number)- removes the queue item at the given index
+Methods for the action function:
 
-* .index         - returns the current iteration point of the queue
-* .index(number) - sets the index manually
-
-* .next()        - processes the next item in the queue, and returns result.
-* .next(n)       - Processes the next n items in the queue. Get results from .results()
-* .run()         - begins processing queue while maintaining the queue
-* .run(index)    - begins processing queue at given index
-
-* .shift()       - Processes the first item in the queue, removes it, and returns the results
-* .shift(n)      - Performs .shift() for the next n items. Get results from .results()
-* .shiftRun()	 - begins processing all items in the queue, removing each, and appending .results();
-
-* .pause()       - pauses the run() at current index or shiftRun().
-* .resume()      - resumes the queue run. Do not call this within the 'paused' eventhandler!
-* .reset()       - sets index(), queue(), and results() to zero and empty
-
-* .results()     - Returns the results array. Index matching run/next, or order of shift/shiftRun
-* .shiftResults()- Returns the first item in the results array and removes it.
-
-methods for the action function
-* this.done()    - notifies the queue that the task is complete.
-* this.done(data)- notifies queue that task is complete, and sends data to .results()
-* this.index()   - returns the index of the current queue item
+* 'this.done()'    - notifies the queue that the task is complete.
+* 'this.done(data)'- notifies queue that task is complete, and sends data to .results()
+* 'this.index()'   - returns the index of the current queue item
 
 ### Events
 
