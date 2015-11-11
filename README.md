@@ -1,9 +1,12 @@
 [![Stories in Ready](https://badge.waffle.io/Johnhhorton/queued-up.svg?label=ready&title=Ready)](http://waffle.io/Johnhhorton/queued-up)
 
 # queued-up
-Simple asynchronous task queuing system.
+I wanted to build a task system that made sense, was as simple as it could be, and as powerful as it could be.  
+This queue module can run basic functions over a list of items, or run a series of async calls meant for vastly different things.
+You can either save the resultant data, or simply perform each operation without it.
 
-Pardon my dust. Currently working on it.
+
+Pardon my dust. Functionality finished.  Working on documenting all features.
 
 ## Install
 
@@ -20,19 +23,37 @@ the queue for later retrieval by passing it into the done() function. See exampl
 
 ### Methods
 
-* .queue()       - Seturns the queue array
-* .queue(\[,...\]) - Sets queue array to the input
+Methods for the queue instance.
+
+* .queue()       - Returns the queue array
+* .queue(\[,...\]) - Sets queue array to the input replacing existing items
+
 * .add(input)    - Adds the input to the end of the queue array
 * .remove(number)- removes the queue item at the given index
+
 * .index         - returns the current iteration point of the queue
 * .index(number) - sets the index manually
-* .next()        - processes the next item in the queue.
-* .reset()       - sets the index to 0
-* .run()         - begins processing queue
-* .run(index)    - begins processing queue at given index
-* .pause()       - pauses the queue run after current task complete.
-* .resume()      - resumes the queue run. Do not call this in the 'paused' event!
 
+* .next()        - processes the next item in the queue, and returns result.
+* .next(n)       - Processes the next n items in the queue. Get results from .results()
+* .run()         - begins processing queue while maintaining the queue
+* .run(index)    - begins processing queue at given index
+
+* .shift()       - Processes the first item in the queue, removes it, and returns the results
+* .shift(n)      - Performs .shift() for the next n items. Get results from .results()
+* .shiftRun()	 - begins processing all items in the queue, removing each, and appending .results();
+
+* .pause()       - pauses the run() at current index or shiftRun().
+* .resume()      - resumes the queue run. Do not call this within the 'paused' eventhandler!
+* .reset()       - sets index(), queue(), and results() to zero and empty
+
+* .results()     - Returns the results array. Index matching run/next, or order of shift/shiftRun
+* .shiftResults()- Returns the first item in the results array and removes it.
+
+methods for the action function
+* this.done()    - notifies the queue that the task is complete.
+* this.done(data)- notifies queue that task is complete, and sends data to .results()
+* this.index()   - returns the index of the current queue item
 
 ### Events
 
@@ -41,41 +62,126 @@ the queue for later retrieval by passing it into the done() function. See exampl
 * 'resumed'  - Queue run has been resumed
 * 'taskdone' - A task has been completed.  Returns {index: 0, data: thedata}.  Not required to pull data from here.
 
-## Examples
+### Scenario - next(): Iterate over items with function
 
 ```javascript
 var qup = require('./queued-up');
 
-//This funtion will receive each queued item.
-function action(queueItem) {
-	var _self = this; //maintain a reference to 'this'
-	
-	//This will show the progress through the queue.
-	console.log(_self.index());
-	
-	//perform a simulated async call
-	setTimeout(function(){
-		//This line passes the queue item straight into the results array.
-		//_self.done() notifies queued-up that this is complete.
-		_self.done(queueItem);
-	}, 1000);
-};
+/*  Define the function called for each iteration.
+*   End all action functions with this.done() to notify completion.
+*   Passing this.done() with an argument will add the data to the results array queue.results().
+*   Running this.done() as the return function will also return the data in .next() and .shift().
+*/
+function square(item){
+	return this.done(item*item);
+}
 
-//q will be our queue instance.
-var q = qup({action: action});
+//Pass the action into the module, and a new queue object will be created.
+var queue = qup(square);
 
-//adding an array of string objects to the queue.
-q.add(["obj 0", "obj 1", "obj 2", "obj 3", "obj 4", "obj 5", "obj 6"]);
+//add the items to the queue
+queue.add([1,2,3,4,5,6]);
 
-//Event called when the queue run has finished.
-q.on('complete', function (data) {
-	console.log("complete data:  " + data);
-});
+console.log(queue.next()); //returns 1
+console.log(queue.next()); //returns 6
+console.log(queue.next()); //returns 9
 
-//start the queue processing.
-q.run();
 
+//.results() returns the array of results where the index
+//matches the queued item.
+console.log(queue.results());//returns [ 1, 4, 9 ]
+//.queue returns the contents of the queued items.
+console.log(queue.queue());//returns   [ 1, 2, 3, 4, 5, 6 ]
 ```
 
 
+
+### Scenario - shift(): Deplete the queue of items while applying the function.
+```javascript
+var qup = require('./queued-up');
+
+/*  Define the function called for each iteration.
+*   End all action functions with this.done() to notify completion.
+*   Passing this.done() with an argument will add the data to the results array queue.results().
+*   Running this.done() as the return function will also return the data in .next() and .shift().
+*/
+function square(item){
+	return this.done(item*item);
+}
+
+//Pass the action into the module, and a new queue object will be created.
+var queue = qup(square);
+
+//add the items to the queue
+queue.add([1,2,3,4,5,6]);
+
+console.log(queue.shift()); //returns 1
+console.log(queue.shift()); //returns 6
+console.log(queue.shift()); //returns 9
+
+//.results() after a shift() returns the items in the order they were operated on.
+console.log(queue.results());//returns [ 1, 4, 9 ]
+//.queue after shift shows the remaining items.
+console.log(queue.queue());//returns   [ 4, 5, 6 ]
+```
+
+
+
+### Scenario - run(): complete the queued items while maintaining the queue.
+```javascript
+var qup = require('./queued-up');
+
+function square(item){
+	return this.done(item*item);
+}
+
+var queue = qup(square);
+
+//add the items to the queue
+queue.add([1,2,3,4,5,6]);
+
+//Run will run the action function for all items.
+queue.run();
+
+console.log(queue.results());//returns [ 1, 4, 9, 16, 25, 36 ]
+
+console.log(queue.queue());//returns   [ 1, 2, 3, 4, 5, 6 ]
+```
+
+
+### Scenario - shiftRun(): complete the queued items and deplete the queue.
+```javascript
+var qup = require('./queued-up');
+
+function square(item){
+	return this.done(item*item);
+}
+
+var queue = qup(square);
+
+//add the items to the queue
+queue.add([1,2,3,4,5,6]);
+
+//Run will run the action function for all items.
+queue.shiftRun();
+
+console.log(queue.results()); //returns [ 1, 4, 9, 16, 25, 36 ]
+
+console.log(queue.queue()); //returns   []
+```
+
+### Scenario - next(3) & shift(3): Process a set number of items in the queue.
+
+Note that this would only return the last item.  See `.results()` for the results of the processing.  This can be useful if you wish to process items in chunks.
+
+```javascript
+//will process the next 3 items in the queue.
+queue.next(3);
+//will process and remove the next 3 items.
+queue.shift(3);
+```
+
+async examples and usage of the event system will be up soon.  Please create
+an issue if you run into any problems, or would like to see something done
+differently.
 
