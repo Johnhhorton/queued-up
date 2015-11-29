@@ -1,215 +1,244 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var events = require('events');
-
-var Queue = function (inputOptions) {
-	
-	if(typeof inputOptions === "function"){
-		inputOptions = {action:inputOptions};
-	}
-	
-	var Queue = function () {
-		var self = this,
-			_runAll = false,
-			_shiftRun = false,
-			_shift = false,
-			_next = false,
-			_paused = false,
-			_pausedOn = null,
-			_count = 1,
-		    _options = inputOptions,
-		    _queue = [],
-		    _runResults = [],
-		    _index = 0;
-		self.options = _options;
-		self.action = _options.action;
-		
-		self.action.prototype.pause = self.pause;
-		self.action.prototype.index = self.index;
-		self.action.prototype.done = self.done;
-		
-		self.done = function(data){
-			
-			if(typeof data === "undefined"){
-				self.emit('taskcomplete',{index: this.index()});
-			}else{
-				self.emit('taskcomplete', {index : this.index(),
-			taskData: data});
-			}
-			return data;
-		};
-		
-		self.on('taskcomplete', function(data){
-			_count--;
-			if(_shift){
-				
-				if(typeof data.taskData !== "undefined"){
-					_runResults.push(data.taskData);
-					}
-				if(_shiftRun){
-					if(_queue.length === 0){
-						_shiftRun = false;
-						_shift = false;
-						self.complete();
-					}else{
-						_count = 1;
-						if(!_paused) self.shift();
-					}
-				}else if(!_shiftRun && !_paused){
-					if(_count > 0){
-						
-						self.shift(_count);
-					}else{
-					 _shift = false
-					 _count = 1;	
-					}
-					
-				}
-			}else if(_next === true){
-				
-				_index++;
-				if(typeof data.taskData !== "undefined"){
-					_runResults[data.index] = data.taskData;
-				}
-				
-				
-				if(_index >= _queue.length){
-					_runAll = false;
-					
-					_index = 0;
-					self.complete();
-				}
-				if(_runAll){
-					_next = true;
-					if(!_paused) self.next();
-				}else if(!_runAll && !_paused){
-					
-					if(_count > 0){
-						
-						self.next(_count);
-					}else{
-					 _next = false;
-					 _count = 1;	
-					}
-				} 
-			}
-		
-		});
-		
-		//add item to the queue
-		self.add = function (input) {
-			_queue = _queue.concat(input);
-			return _queue;
-		};
-		
-		self.remove = function(input){
-			_queue.splice(input, 1);
-			return _queue;
-		}
-		
-		//perform the next iteration in the _queue
-		self.next = function (count) {
-			if(typeof count === "number"){
-				_count = count;
-				_paused = false;
-			}else{
-				_count = 1;
-				_paused = false;
-			}
-			_next = true;
-			return self.action(_queue[_index]);
-		};
-
-		self.run = function (index) {
-			if(typeof index === "number"){
-				_index = index;
-			}else{
-			_index = 0;
-			}
-			_runAll = true;
-			_runResults = [];
-			self.next();
-		};
-
-
-		self.shift = function (count){
-			if(typeof count === "number"){
-				_count = count;
-				_paused = false;
-			}else{
-				_count = 1;
-				_paused = false;
-			}
-			
-			_shift = true;
-			return self.action(_queue.shift());
-		};
-		
-		self.shiftRun = function(){
-			_shiftRun = true;
-			self.shift();
-		};
-		
-		self.shiftResults = function(){
-			return _runResults.shift();
-		}
-		
-		self.results = function(){
-			return _runResults;
-		}
-
-		self.pause = function () {
-			if(_shift === true){
-				_pausedOn = 'shift';
-			}else if(_next === true){
-				_pausedOn = 'next';
-			}
-			_runAll = false;
-			_shiftRun = false;
-			_paused = true;
-			self.emit('paused', _runResults);
-		};
-
-		self.resume = function () {
-			_paused = false;
-			if(_shift === true || _pausedOn === 'shift'){
-				self.emit('resumed');
-				_shiftRun = true;
-				_pausedOn = null;
-				self.shiftRun();
-			}else if(_next === true || _pausedOn === 'next'){
-				self.emit('resumed');
-				_runAll = true;
-				_pausedOn = null;
-				self.next();
-			}
-		};
-		
-		self.complete = function () {
-			self.emit('complete', _runResults);
-		};
-		
-		self.reset = function () {
-			_index = 0;
-			_queue = [];
-			_runResults = [];
-		};
-		
-		self.queue = function(input){
-			
-			if(Array.isArray(input)){
-			_queue = input;
-			}
-			return _queue;
-		};
-		
-		self.index = function (inputIndex) {
-			if (typeof (inputIndex) === "number") {
-				_index = inputIndex;
-			}
-			return _index;
-		};
-	};
-	Queue.prototype = new events.EventEmitter;
-	return new Queue();
-}
-
+var Queue = (function (_super) {
+    __extends(Queue, _super);
+    function Queue(inputAction) {
+        _super.call(this);
+        this._runAll = false;
+        this._shiftRun = false;
+        this._shift = false;
+        this._next = false;
+        this._paused = false;
+        this._pausedOn = null;
+        this._count = 1;
+        this._queue = [];
+        this._runResults = [];
+        this._index = 0;
+        this.action = inputAction;
+        this.action.prototype.pause = this.pause;
+        this.action.prototype.index = this.index;
+        this.action.prototype.done = this.done;
+        this.on('taskcomplete', this._taskCompleteHandler);
+    }
+    /**
+        * Internal function run when a run has completed.
+        */
+    Queue.prototype.complete = function () {
+        this.emit('complete', this._runResults);
+        console.log("complete called");
+    };
+    /**
+        * Internal function for handling task completion and run/shift decisions.
+        */
+    Queue.prototype._taskCompleteHandler = function (data) {
+        this._count--;
+        if (this._shift) {
+            if (typeof data.taskData !== "undefined") {
+                this._runResults.push(data.taskData);
+            }
+            if (this._shiftRun) {
+                if (this._queue.length === 0) {
+                    this._shiftRun = false;
+                    this._shift = false;
+                    this.complete();
+                }
+                else {
+                    this._count = 1;
+                    if (!this._paused)
+                        this.shift();
+                }
+            }
+            else if (!this._shiftRun && !this._paused) {
+                if (this._count > 0) {
+                    this.shift(this._count);
+                }
+                else {
+                    this._shift = false;
+                    this._count = 1;
+                }
+            }
+        }
+        else if (this._next === true) {
+            this._index++;
+            if (typeof data.taskData !== "undefined") {
+                this._runResults[data.index] = data.taskData;
+            }
+            if (this._index >= this._queue.length) {
+                this._runAll = false;
+                this._index = 0;
+                this.complete();
+            }
+            if (this._runAll) {
+                this._next = true;
+                if (!this._paused)
+                    this.next();
+            }
+            else if (!this._runAll && !this._paused) {
+                if (this._count > 0) {
+                    this.next(this._count);
+                }
+                else {
+                    this._next = false;
+                    this._count = 1;
+                }
+            }
+        }
+    };
+    /**
+        * Called by the action function when task complete. Data saved to results.
+        */
+    Queue.prototype.done = function (data) {
+        if (typeof data === "undefined") {
+            this.emit('taskcomplete', { index: this.index() });
+        }
+        else {
+            this.emit('taskcomplete', { index: this.index(),
+                taskData: data });
+        }
+        return data;
+    };
+    /**
+        * Adds the item to the end of the queue.
+        */
+    Queue.prototype.add = function (input) {
+        this._queue = this._queue.concat(input);
+        return this._queue;
+    };
+    /**
+        * Removes the queue item at provided index. Returns queue.
+        */
+    Queue.prototype.remove = function (input) {
+        this._queue.splice(input, 1);
+        return this._queue;
+    };
+    /**
+        * Performs the next task. Returns what the action returns.
+        */
+    Queue.prototype.next = function (count) {
+        if (count === void 0) { count = 1; }
+        if (count) {
+            this._count = count;
+            this._paused = false;
+        }
+        else {
+            this._count = 1;
+            this._paused = false;
+        }
+        this._next = true;
+        return this.action(this._queue[this._index]);
+    };
+    /**
+        * Processes entire queue and stores results.
+        */
+    Queue.prototype.run = function (index) {
+        if (typeof index === "number") {
+            this._index = index;
+        }
+        else {
+            this._index = 0;
+        }
+        this._runAll = true;
+        this._runResults = [];
+        this.next();
+    };
+    /**
+        * Runs the next task and removes it once complete.
+        * Returns what the action returns.
+        */
+    Queue.prototype.shift = function (count) {
+        if (typeof count === "number") {
+            this._count = count;
+            this._paused = false;
+        }
+        else {
+            this._count = 1;
+            this._paused = false;
+        }
+        this._shift = true;
+        return this.action(this._queue.shift());
+    };
+    /**
+        * Processes entire queue removing each item once completed.
+        */
+    Queue.prototype.shiftRun = function () {
+        this._shiftRun = true;
+        this.shift();
+    };
+    /**
+        * Returns the first results of a run and removes it.
+        */
+    Queue.prototype.shiftResults = function () {
+        return this._runResults.shift();
+    };
+    /**
+        * Returns the results array.
+        */
+    Queue.prototype.results = function () {
+        return this._runResults;
+    };
+    /**
+        * Pauses a run or Shiftrun once current task is complete.
+        */
+    Queue.prototype.pause = function () {
+        if (this._shift === true) {
+            this._pausedOn = 'shift';
+        }
+        else if (this._next === true) {
+            this._pausedOn = 'next';
+        }
+        this._runAll = false;
+        this._shiftRun = false;
+        this._paused = true;
+        this.emit('paused', this._runResults);
+    };
+    /**
+        * Continues a run or shiftrun after a pause.
+        */
+    Queue.prototype.resume = function () {
+        this._paused = false;
+        if (this._shift === true || this._pausedOn === 'shift') {
+            this.emit('resumed');
+            this._shiftRun = true;
+            this._pausedOn = null;
+            this.shiftRun();
+        }
+        else if (this._next === true || this._pausedOn === 'next') {
+            this.emit('resumed');
+            this._runAll = true;
+            this._pausedOn = null;
+            this.next();
+        }
+    };
+    /**
+        * Resets the index, clears the queue, and wipes results.
+        */
+    Queue.prototype.reset = function () {
+        this._index = 0;
+        this._queue = [];
+        this._runResults = [];
+    };
+    /**
+        * Sets the queue if provided, returns the queue.
+        */
+    Queue.prototype.queue = function (newQueue) {
+        if (Array.isArray(newQueue)) {
+            this._queue = newQueue;
+        }
+        return this._queue;
+    };
+    /**
+        * Sets the index if input provided, then returns the index
+        */
+    Queue.prototype.index = function (setIndex) {
+        if (typeof (setIndex) === "number") {
+            this._index = setIndex;
+        }
+        return this._index;
+    };
+    return Queue;
+})(events.EventEmitter);
 module.exports = Queue;

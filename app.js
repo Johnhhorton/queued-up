@@ -1,8 +1,11 @@
-
-
-//### Scenario - Async: Iterate over items with async call
-
-//###  Scenario - Async: Iterate over Async functions
-
-
-
+///<reference path='index.d.ts'/>
+var Queue = require('./index');
+var q;
+q = new Queue(function (input) {
+    q.done(input);
+});
+q.on("complete", function (data) {
+    console.log("External complete called" + data);
+});
+q.add([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+q.run();
