@@ -3,6 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+///<reference path="./typings/node/node.d.ts" />
 var events = require('events');
 var Queue = (function (_super) {
     __extends(Queue, _super);

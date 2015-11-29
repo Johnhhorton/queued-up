@@ -1,3 +1,4 @@
+/// <reference path="typings/node/node.d.ts" />
 import events = require('events');
 declare class Queue extends events.EventEmitter {
     private _runAll;

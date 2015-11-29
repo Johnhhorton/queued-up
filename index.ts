@@ -1,3 +1,4 @@
+///<reference path="./typings/node/node.d.ts" />
 import events = require('events');
 
 	class Queue extends events.EventEmitter{
