@@ -61,7 +61,7 @@ Methods for the action function:
 ### Scenario - next(): Iterate over items with function
 
 ```javascript
-var qup = require('./queued-up');
+var qup = require('queued-up');
 
 /*  Define the function called for each iteration.
 *   End all action functions with this.done() to notify completion.
@@ -73,7 +73,7 @@ function square(item){
 }
 
 //Pass the action into the module, and a new queue object will be created.
-var queue = qup(square);
+var queue = new qup(square);
 
 //add the items to the queue
 queue.add([1,2,3,4,5,6]);
@@ -94,7 +94,7 @@ console.log(queue.queue());//returns   [ 1, 2, 3, 4, 5, 6 ]
 
 ### Scenario - shift(): Deplete the queue of items while applying the function.
 ```javascript
-var qup = require('./queued-up');
+var qup = require('queued-up');
 
 /*  Define the function called for each iteration.
 *   End all action functions with this.done() to notify completion.
@@ -106,7 +106,7 @@ function square(item){
 }
 
 //Pass the action into the module, and a new queue object will be created.
-var queue = qup(square);
+var queue = new qup(square);
 
 //add the items to the queue
 queue.add([1,2,3,4,5,6]);
@@ -125,13 +125,13 @@ console.log(queue.queue());//returns   [ 4, 5, 6 ]
 
 ### Scenario - run(): complete the queued items while maintaining the queue.
 ```javascript
-var qup = require('./queued-up');
+var qup = require('queued-up');
 
 function square(item){
 	return this.done(item*item);
 }
 
-var queue = qup(square);
+var queue = new qup(square);
 
 //add the items to the queue
 queue.add([1,2,3,4,5,6]);
@@ -147,13 +147,13 @@ console.log(queue.queue());//returns   [ 1, 2, 3, 4, 5, 6 ]
 
 ### Scenario - shiftRun(): complete the queued items and deplete the queue.
 ```javascript
-var qup = require('./queued-up');
+var qup = require('queued-up');
 
 function square(item){
 	return this.done(item*item);
 }
 
-var queue = qup(square);
+var queue = new qup(square);
 
 //add the items to the queue
 queue.add([1,2,3,4,5,6]);
