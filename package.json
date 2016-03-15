@@ -1,6 +1,6 @@
 {
   "name": "queued-up",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Simple task Queuing module",
   "main": "index.js",
   "scripts": {
