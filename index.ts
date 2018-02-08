@@ -19,9 +19,10 @@ import events = require('events');
 		super();
 		
 		this.action = inputAction;
-		this.action.prototype.pause = this.pause;
-		this.action.prototype.index = this.index;
-		this.action.prototype.done = this.done;
+		// Not needed anymore: ?
+		// this.action.prototype.pause = this.pause;
+		// this.action.prototype.index = this.index;
+		// this.action.prototype.done = this.done;
 		
 		this.on('taskcomplete', this._taskCompleteHandler);
 	}
