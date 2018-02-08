@@ -1,29 +1,37 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 ///<reference path="./typings/node/node.d.ts" />
-var events = require('events');
-var Queue = (function (_super) {
+var events = require("events");
+var Queue = /** @class */ (function (_super) {
     __extends(Queue, _super);
     function Queue(inputAction) {
-        _super.call(this);
-        this._runAll = false;
-        this._shiftRun = false;
-        this._shift = false;
-        this._next = false;
-        this._paused = false;
-        this._pausedOn = null;
-        this._count = 1;
-        this._queue = [];
-        this._runResults = [];
-        this._index = 0;
-        this.action = inputAction;
-        this.action.prototype.pause = this.pause;
-        this.action.prototype.index = this.index;
-        this.action.prototype.done = this.done;
-        this.on('taskcomplete', this._taskCompleteHandler);
+        var _this = _super.call(this) || this;
+        _this._runAll = false;
+        _this._shiftRun = false;
+        _this._shift = false;
+        _this._next = false;
+        _this._paused = false;
+        _this._pausedOn = null;
+        _this._count = 1;
+        _this._queue = [];
+        _this._runResults = [];
+        _this._index = 0;
+        _this.action = inputAction;
+        // Not needed anymore: ?
+        // this.action.prototype.pause = this.pause;
+        // this.action.prototype.index = this.index;
+        // this.action.prototype.done = this.done;
+        _this.on('taskcomplete', _this._taskCompleteHandler);
+        return _this;
     }
     /**
         * Internal function run when a run has completed.
@@ -241,5 +249,5 @@ var Queue = (function (_super) {
         return this._index;
     };
     return Queue;
-})(events.EventEmitter);
+}(events.EventEmitter));
 module.exports = Queue;
